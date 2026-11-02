@@ -12,4 +12,4 @@ EOF
 systemctl daemon-reload
 systemctl enable ollama
 systemctl restart ollama
-ollama pull qwen3:1.7b
+HOME=/root ollama pull qwen3:1.7b
