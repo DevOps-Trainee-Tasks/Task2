@@ -4,16 +4,16 @@ variable "main_vpc_id" {
 
 variable "security_groups" {
   type = map(object({
-    ingress_port_tcp        = optional(number)
-    allowed_cidr_block      = optional(string)
-    allow_all_egress        = optional(bool, false)
+    allow_all_egress = optional(bool, false)
   }))
 }
 
-variable "sg_ingress_rules" {
+variable "ingress_rules" {
   type = map(object({
     target_group = string
-    source_group = string
-    port         = number
+    ports = set(number)
+    protocol = optional(string, "tcp")
+    cidr_ipv4 = optional(string)
+    source_group = optional(string)
   }))
 }

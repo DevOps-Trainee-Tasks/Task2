@@ -40,56 +40,59 @@ module "sg" {
   main_vpc_id = module.vpc.vpc_id
 
   security_groups = {
-
     bastion_sg = {
-        ingress_port_tcp = 22
-        allowed_cidr_block = var.my_ip
-        allow_all_egress = true
-
+      allow_all_egress = true
     }
 
     alb_sg = {
-        ingress_port_tcp = 80
-        allowed_cidr_block = var.my_ip
-        allow_all_egress = true
-
+      allow_all_egress = true
     }
 
-    bastion-servers_sg = {}
+    "bastion-servers_sg" = {}
 
-    alb-llm_sg = {
-        allow_all_egress = true
+    "alb-llm_sg" = {
+      allow_all_egress = true
     }
 
     rds_sg = {}
   }
 
-  sg_ingress_rules = {
+  ingress_rules = {
+    bastion_ssh = {
+      target_group = "bastion_sg"
+      ports = [22]
+      cidr_ipv4 = var.my_ip
+    }
+
+    alb_http = {
+      target_group = "alb_sg"
+      ports = [80]
+      cidr_ipv4 = var.my_ip
+    }
 
     ssh_to_server = {
-        target_group = "bastion-servers_sg"
-        source_group = "bastion_sg"
-        port = 22
+      target_group = "bastion-servers_sg"
+      ports = [22]
+      source_group = "bastion_sg"
     }
 
     alb_to_llm = {
-        target_group = "alb-llm_sg"
-        source_group = "alb_sg"
-        port = 11434
+      target_group = "alb-llm_sg"
+      ports = [11434]
+      source_group = "alb_sg"
     }
 
     llm_to_db = {
-        target_group = "rds_sg"
-        source_group = "alb-llm_sg"
-        port = 5432
+      target_group = "rds_sg"
+      ports = [5432]
+      source_group = "alb-llm_sg"
     }
 
     bastion_to_db = {
-        target_group = "rds_sg"
-        source_group = "bastion_sg"
-        port = 5432
+      target_group = "rds_sg"
+      ports = [5432]
+      source_group = "bastion_sg"
     }
-
   }
 }
 
