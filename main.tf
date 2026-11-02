@@ -96,6 +96,7 @@ module "sg" {
 module "bastion" {
   source = "./modules/ec2"
 
+  name_prefix = local.project
   ami_id = local.bastion_ami_id
   instance_type = local.bastion_instance_type
   subnet_id = module.vpc.public_subnet_ids[0]

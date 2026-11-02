@@ -21,3 +21,7 @@ variable "key_name" {
 variable "user_data" {
   type = string
 }
+
+variable "name_prefix" {
+  type = string
+}

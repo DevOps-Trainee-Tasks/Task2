@@ -5,4 +5,7 @@ resource "aws_instance" "ec2" {
     vpc_security_group_ids = var.security_group_ids
     key_name = var.key_name
     user_data = var.user_data
+    tags = {
+        Name = "bastion"
+    }
 }
