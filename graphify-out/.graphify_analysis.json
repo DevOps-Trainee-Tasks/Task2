@@ -1,0 +1,168 @@
+{
+  "communities": {
+    "0": [
+      "modules_vpc_main",
+      "modules_vpc_variables",
+      "vpc_aws_subnet_private_db_subnets",
+      "vpc_aws_subnet_private_servers_subnets",
+      "vpc_aws_vpc_main_vpc",
+      "vpc_var_available_zones_list",
+      "vpc_var_cidr",
+      "vpc_var_private_db_subnets",
+      "vpc_var_private_servers_subnets"
+    ],
+    "1": [
+      "locals",
+      "main",
+      "manual_task1_local_aws_region",
+      "manual_task1_local_http_port",
+      "manual_task1_local_project",
+      "manual_task1_module_vpc",
+      "manual_task1_provider_aws"
+    ],
+    "2": [
+      "modules_vpc_outputs",
+      "vpc_output_private_db_subnet_ids",
+      "vpc_output_private_servers_subnet_ids",
+      "vpc_output_vpc_id"
+    ],
+    "3": [
+      "vpc_aws_subnet_public_subnets",
+      "vpc_output_public_subnet_ids",
+      "vpc_var_public_subnets"
+    ],
+    "4": [
+      "modules_vpc_internet_gateway",
+      "vpc_aws_internet_gateway_internet_gateway"
+    ],
+    "5": [
+      "modules_vpc_route_tables",
+      "vpc_aws_route_table_route_table"
+    ],
+    "6": [
+      "variables"
+    ]
+  },
+  "cohesion": {
+    "0": 0.3888888888888889,
+    "1": 0.2857142857142857,
+    "2": 0.5,
+    "3": 0.6666666666666666,
+    "4": 1.0,
+    "5": 1.0,
+    "6": 1.0
+  },
+  "gods": [
+    {
+      "id": "vpc_aws_vpc_main_vpc",
+      "label": "aws_vpc.main_vpc",
+      "degree": 8
+    },
+    {
+      "id": "vpc_aws_subnet_public_subnets",
+      "label": "aws_subnet.public_subnets",
+      "degree": 5
+    },
+    {
+      "id": "vpc_aws_subnet_private_servers_subnets",
+      "label": "aws_subnet.private_servers_subnets",
+      "degree": 5
+    },
+    {
+      "id": "vpc_aws_subnet_private_db_subnets",
+      "label": "aws_subnet.private_db_subnets",
+      "degree": 5
+    },
+    {
+      "id": "vpc_var_available_zones_list",
+      "label": "var.available_zones_list",
+      "degree": 4
+    },
+    {
+      "id": "manual_task1_local_aws_region",
+      "label": "local.aws_region",
+      "degree": 2
+    },
+    {
+      "id": "manual_task1_provider_aws",
+      "label": "provider.aws",
+      "degree": 2
+    },
+    {
+      "id": "vpc_aws_internet_gateway_internet_gateway",
+      "label": "aws_internet_gateway.internet_gateway",
+      "degree": 2
+    },
+    {
+      "id": "vpc_output_vpc_id",
+      "label": "output.vpc_id",
+      "degree": 2
+    },
+    {
+      "id": "vpc_output_public_subnet_ids",
+      "label": "output.public_subnet_ids",
+      "degree": 2
+    }
+  ],
+  "surprises": [
+    {
+      "source": "provider.aws",
+      "target": "local.aws_region",
+      "source_files": [
+        "main.tf",
+        "locals.tf"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "aws_internet_gateway.internet_gateway",
+      "target": "aws_vpc.main_vpc",
+      "source_files": [
+        "modules/vpc/internet_gateway.tf",
+        "modules/vpc/main.tf"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "bridges separate communities; peripheral node `aws_internet_gateway.internet_gateway` unexpectedly reaches hub `aws_vpc.main_vpc`"
+    },
+    {
+      "source": "aws_route_table.route_table",
+      "target": "aws_vpc.main_vpc",
+      "source_files": [
+        "modules/vpc/route_tables.tf",
+        "modules/vpc/main.tf"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "bridges separate communities; peripheral node `aws_route_table.route_table` unexpectedly reaches hub `aws_vpc.main_vpc`"
+    },
+    {
+      "source": "output.vpc_id",
+      "target": "aws_vpc.main_vpc",
+      "source_files": [
+        "modules/vpc/outputs.tf",
+        "modules/vpc/main.tf"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "bridges separate communities; peripheral node `output.vpc_id` unexpectedly reaches hub `aws_vpc.main_vpc`"
+    },
+    {
+      "source": "output.private_servers_subnet_ids",
+      "target": "aws_subnet.private_servers_subnets",
+      "source_files": [
+        "modules/vpc/outputs.tf",
+        "modules/vpc/main.tf"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "bridges separate communities; peripheral node `output.private_servers_subnet_ids` unexpectedly reaches hub `aws_subnet.private_servers_subnets`"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

@@ -25,3 +25,12 @@ variable "user_data" {
 variable "name_prefix" {
   type = string
 }
+
+variable "ec2_name" {
+  type = string
+}
+
+variable "iam_instance_profile" {
+  type    = string
+  default = null
+}

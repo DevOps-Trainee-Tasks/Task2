@@ -1,5 +1,8 @@
 #!/bin/bash
 set -e
+
+PROMETHEUS_REMOTE_WRITE_URL="http://${monitoring_ip}:9090/api/v1/write"
+
 curl -fsSL https://ollama.com/install.sh -o /tmp/install-ollama.sh
 sh /tmp/install-ollama.sh
 

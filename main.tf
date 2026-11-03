@@ -55,6 +55,10 @@ module "sg" {
     }
 
     rds_sg = {}
+
+    monitoring_sg = {
+      allow_all_egress = true
+    }
   }
 
   ingress_rules = {
@@ -93,12 +97,31 @@ module "sg" {
       ports = [5432]
       source_group = "bastion_sg"
     }
+
+    grafana = {
+      target_group = "monitoring_sg"
+      ports = [3000]
+      cidr_ipv4 = var.my_ip
+    }
+
+    ssh_to_grafana = {
+      target_group = "monitoring_sg"
+      ports = [22]
+      source_group = "bastion_sg"
+    }
+
+    llm_to_prometheus = {
+      target_group = "monitoring_sg"
+      ports = [9090]
+      source_group = "alb-llm_sg"
+    }
   }
 }
 
 module "bastion" {
   source = "./modules/ec2"
 
+  ec2_name = "Bastion"
   name_prefix = local.project
   ami_id = local.bastion_ami_id
   instance_type = local.bastion_instance_type
@@ -131,7 +154,9 @@ module "asg" {
     module.sg.security_group_ids["alb-llm_sg"]
   ]
   private_subnet_ids = module.vpc.private_servers_subnet_ids
-  user_data = filebase64("${path.root}/scripts/install_ollama.sh")
+  user_data = base64encode(templatefile("${path.root}/scripts/ollama.sh", {
+    monitoring_ip = module.monitoring.private_ip
+  }))
   target_group_arn = module.alb.target_group_arn
 }
 
@@ -146,4 +171,31 @@ module "rds" {
     db_username = local.rds_db_username
     engine_version = local.rds_engine_version
     allocated_storage = local.rds_allocated_storage
+}
+
+module "monitoring" {
+  source = "./modules/ec2"
+
+  ec2_name = "Monitoring"
+  key_name = local.bastion_key_name
+  ami_id = local.bastion_ami_id
+  name_prefix = local.project
+  security_group_ids = [module.sg.security_group_ids["monitoring_sg"]]
+  subnet_id = module.vpc.public_subnet_ids[1]
+  user_data = file("${path.root}/scripts/monitoring.sh")
+  instance_type = "t3.medium"
+  iam_instance_profile = module.monitoring_iam.instance_profile_name
+}
+
+module "monitoring_iam" {
+  source = "./modules/monitoring"
+
+  name_prefix = local.project
+}
+
+module "monitoring_alerts" {
+  source = "./modules/alerts"
+
+  name_prefix    = local.project
+  alert_email    = var.email
 }

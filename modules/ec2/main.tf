@@ -6,6 +6,7 @@ resource "aws_instance" "ec2" {
     key_name = var.key_name
     user_data = var.user_data
     tags = {
-        Name = "bastion"
+        Name = "${var.ec2_name}"
     }
+    iam_instance_profile = var.iam_instance_profile
 }

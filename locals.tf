@@ -1,6 +1,6 @@
 locals {
     aws_region = "us-east-1"
-    project = "manual-task1"
+    project = "task2"
     http_port = 80
     bastion_ami_id = "ami-07ad3ac74660c86c1"
     bastion_instance_type = "t3.micro"

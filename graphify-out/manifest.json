@@ -1,0 +1,50 @@
+{
+  "locals.tf": {
+    "mtime": 1793286187.737462,
+    "seen": 1793358361.3746948,
+    "ast_hash": "b28ca3b7ef45c5096a52de1da04c16a6",
+    "semantic_hash": "b28ca3b7ef45c5096a52de1da04c16a6"
+  },
+  "main.tf": {
+    "mtime": 1793356884.588437,
+    "seen": 1793358361.374698,
+    "ast_hash": "e1897393153a93f7bb3314862f40722f",
+    "semantic_hash": "e1897393153a93f7bb3314862f40722f"
+  },
+  "modules/vpc/internet_gateway.tf": {
+    "mtime": 1793358208.315835,
+    "seen": 1793358361.374699,
+    "ast_hash": "3160aea6a18af2b2205636e84ca02576",
+    "semantic_hash": "3160aea6a18af2b2205636e84ca02576"
+  },
+  "modules/vpc/main.tf": {
+    "mtime": 1793357431.6388128,
+    "seen": 1793358361.3747,
+    "ast_hash": "f61f96814c55e53ba2175d3c13ba1c6a",
+    "semantic_hash": "f61f96814c55e53ba2175d3c13ba1c6a"
+  },
+  "modules/vpc/outputs.tf": {
+    "mtime": 1793358078.4115674,
+    "seen": 1793358361.374701,
+    "ast_hash": "2053adfd55bcf2d8c3e08606ee84d273",
+    "semantic_hash": "2053adfd55bcf2d8c3e08606ee84d273"
+  },
+  "modules/vpc/route_tables.tf": {
+    "mtime": 1793358327.8644316,
+    "seen": 1793358361.374701,
+    "ast_hash": "0d754c9664022bdbcb5ccb419ca5c6e0",
+    "semantic_hash": "0d754c9664022bdbcb5ccb419ca5c6e0"
+  },
+  "modules/vpc/variables.tf": {
+    "mtime": 1793356914.432791,
+    "seen": 1793358361.374702,
+    "ast_hash": "764c17e49df8a784bf0a4fcc72a608ce",
+    "semantic_hash": "764c17e49df8a784bf0a4fcc72a608ce"
+  },
+  "variables.tf": {
+    "mtime": 1793356803.4896553,
+    "seen": 1793358361.3747032,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  }
+}
