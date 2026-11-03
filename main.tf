@@ -41,71 +41,62 @@ module "sg" {
 
   security_groups = {
     bastion_sg = {
-      allow_all_egress = true
+      ingress_rules = {
+        bastion_ssh = {
+          ports     = [22]
+          cidr_ipv4 = var.my_ip
+        }
+        grafana = {
+          ports     = [3000]
+          cidr_ipv4 = var.my_ip
+        }
+        llm_to_prometheus = {
+          ports        = [9090]
+          source_group = "alb-llm_sg"
+        }
+      }
     }
 
     alb_sg = {
-      allow_all_egress = true
+      ingress_rules = {
+        alb_http = {
+          ports     = [80]
+          cidr_ipv4 = var.my_ip
+        }
+      }
     }
 
-    "bastion-servers_sg" = {}
+    "bastion-servers_sg" = {
+      ingress_rules = {
+        ssh_to_server = {
+          ports        = [22]
+          source_group = "bastion_sg"
+        }
+      }
+    }
 
     "alb-llm_sg" = {
-      allow_all_egress = true
+      ingress_rules = {
+        alb_to_llm = {
+          ports        = [11434]
+          source_group = "alb_sg"
+        }
+      }
     }
 
-    rds_sg = {}
-
-  }
-
-  ingress_rules = {
-    bastion_ssh = {
-      target_group = "bastion_sg"
-      ports = [22]
-      cidr_ipv4 = var.my_ip
+    rds_sg = {
+      ingress_rules = {
+        llm_to_db = {
+          ports        = [5432]
+          source_group = "alb-llm_sg"
+        }
+        bastion_to_db = {
+          ports        = [5432]
+          source_group = "bastion_sg"
+        }
+      }
     }
-
-    alb_http = {
-      target_group = "alb_sg"
-      ports = [80]
-      cidr_ipv4 = var.my_ip
-    }
-
-    ssh_to_server = {
-      target_group = "bastion-servers_sg"
-      ports = [22]
-      source_group = "bastion_sg"
-    }
-
-    alb_to_llm = {
-      target_group = "alb-llm_sg"
-      ports = [11434]
-      source_group = "alb_sg"
-    }
-
-    llm_to_db = {
-      target_group = "rds_sg"
-      ports = [5432]
-      source_group = "alb-llm_sg"
-    }
-
-    bastion_to_db = {
-      target_group = "rds_sg"
-      ports = [5432]
-      source_group = "bastion_sg"
-    }
-
-    grafana = {
-      target_group = "bastion_sg"
-      ports = [3000]
-      cidr_ipv4 = var.my_ip
-    }
-
-    llm_to_prometheus = {
-      target_group = "bastion_sg"
-      ports = [9090]
-      source_group = "alb-llm_sg"
-    }
+    
   }
 }
 
