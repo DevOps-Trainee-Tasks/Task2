@@ -58,6 +58,10 @@ module "sg" {
           ports = [9090]
           cidr_ipv4 = var.my_ip
         }
+        alb_to_webui = {
+          ports = [8080]
+          source_group = "alb_sg"
+        }
       }
     }
 
@@ -65,6 +69,10 @@ module "sg" {
       ingress_rules = {
         alb_http = {
           ports = [80]
+          cidr_ipv4 = var.my_ip
+        }
+        webui = {
+          ports = [8080]
           cidr_ipv4 = var.my_ip
         }
       }
@@ -126,6 +134,8 @@ module "bastion" {
     alb_4xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-4xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     alb_5xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-5xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     response_time_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/response-time.json", { alb_arn_suffix = module.alb.arn_suffix }))
+    webui_script = base64encode(file("${path.root}/scripts/open-webui.sh"))
+    ollama_url = "http://${module.alb.alb_dns}"
   })
   iam_instance_profile = module.monitoring_iam.instance_profile_name
 }
@@ -175,4 +185,15 @@ module "monitoring_iam" {
 
   name_prefix = local.project
   sns_topic_arn = data.aws_sns_topic.monitoring_alerts.arn
+}
+
+module "webui" {
+  source = "./modules/webui"
+
+  name_prefix           = local.project
+  vpc_id                = module.vpc.vpc_id
+  alb_arn               = module.alb.alb_arn
+  alb_security_group_id = module.sg.security_group_ids["alb_sg"]
+  bastion_instance_id   = module.bastion.instance_id
+  bastion_public_ip     = module.bastion.public_ip
 }

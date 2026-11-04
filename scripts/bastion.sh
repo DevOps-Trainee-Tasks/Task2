@@ -111,3 +111,6 @@ echo '${response_time_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashb
 
 systemctl daemon-reload
 systemctl enable --now prometheus grafana-server
+
+echo '${webui_script}' | base64 -d > /tmp/open-webui.sh
+bash /tmp/open-webui.sh '${ollama_url}'

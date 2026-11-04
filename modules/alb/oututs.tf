@@ -9,3 +9,7 @@ output "alb_dns" {
 output "arn_suffix" {
   value = aws_lb.alb.arn_suffix
 }
+
+output "alb_arn" {
+  value = aws_lb.alb.arn
+}
