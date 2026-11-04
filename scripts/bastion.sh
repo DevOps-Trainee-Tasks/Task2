@@ -1,17 +1,15 @@
 #!/bin/bash
 set -e
 
-dnf install -y postgresql16 curl tar gzip shadow-utils
+dnf install -y postgresql16 tar gzip shadow-utils
 
 #prometheus
 VERSION="3.14.0"
 
-curl -fsSL "https://github.com/prometheus/prometheus/releases/download/v${VERSION}/prometheus-${VERSION}.linux-amd64.tar.gz" -o /tmp/prometheus.tar.gz
-
-echo "f665c6da19eb7ba399c915d30c7d9793c9b417bf8a749b504bc470678631478d  /tmp/prometheus.tar.gz" | sha256sum -c -
+curl -fsSL "https://github.com/prometheus/prometheus/releases/download/v$VERSION/prometheus-$VERSION.linux-amd64.tar.gz" -o /tmp/prometheus.tar.gz
 
 tar -xzf /tmp/prometheus.tar.gz -C /tmp
-install -m 755 /tmp/prometheus-${VERSION}.linux-amd64/prometheus /usr/local/bin/
+install -m 755 /tmp/prometheus-$VERSION.linux-amd64/prometheus /usr/local/bin/
 
 useradd -r -s /sbin/nologin prometheus
 mkdir -p /etc/prometheus /var/lib/prometheus
@@ -25,6 +23,15 @@ scrape_configs:
   - job_name: prometheus
     static_configs:
       - targets: ["localhost:9090"]
+
+  - job_name: llm-node
+    ec2_sd_configs:
+      - port: 9100
+        filters:
+          - name: tag:Name
+            values: [ollama]
+          - name: instance-state-name
+            values: [running]
 EOF
 
 cat > /etc/systemd/system/prometheus.service <<'EOF'
@@ -34,7 +41,7 @@ After=network.target
 
 [Service]
 User=prometheus
-ExecStart=/usr/local/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/var/lib/prometheus --storage.tsdb.retention.size=2GB --web.listen-address=0.0.0.0:9090 --web.enable-remote-write-receiver
+ExecStart=/usr/local/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/var/lib/prometheus --storage.tsdb.retention.size=2GB --web.listen-address=0.0.0.0:9090
 Restart=on-failure
 
 [Install]
@@ -64,6 +71,7 @@ cat > /etc/grafana/provisioning/datasources/prometheus.yml <<'EOF'
 apiVersion: 1
 datasources:
   - name: Prometheus
+    uid: PBFA97CFB590B2093
     type: prometheus
     access: proxy
     url: http://127.0.0.1:9090
@@ -74,11 +82,32 @@ cat > /etc/grafana/provisioning/datasources/cloudwatch.yml <<'EOF'
 apiVersion: 1
 datasources:
   - name: CloudWatch
+    uid: P034F075C744B399F
     type: cloudwatch
     jsonData:
       authType: default
       defaultRegion: us-east-1
 EOF
+
+mkdir -p /etc/grafana/provisioning/alerting
+
+echo '${contact_points}' | base64 -d > /etc/grafana/provisioning/alerting/contact-points.yaml
+echo '${alert_rules}' | base64 -d | gzip -d > /etc/grafana/provisioning/alerting/alert-rules.yaml
+
+mkdir -p /etc/grafana/provisioning/dashboards /var/lib/grafana/dashboards
+
+cat > /etc/grafana/provisioning/dashboards/monitoring.yml <<'EOF'
+apiVersion: 1
+providers:
+  - name: Monitoring
+    folder: Monitoring
+    options:
+      path: /var/lib/grafana/dashboards
+EOF
+
+echo '${alb_4xx_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/alb-4xx.json
+echo '${alb_5xx_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/alb-5xx.json
+echo '${response_time_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/response-time.json
 
 systemctl daemon-reload
 systemctl enable --now prometheus grafana-server

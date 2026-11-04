@@ -31,6 +31,14 @@ resource "aws_iam_role_policy" "cloudwatch_read" {
           "tag:GetResources"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sns:Publish",
+          "sns:GetTopicAttributes"
+        ]
+        Resource = var.sns_topic_arn
       }
     ]
   })

@@ -43,16 +43,16 @@ module "sg" {
     bastion_sg = {
       ingress_rules = {
         bastion_ssh = {
-          ports     = [22]
+          ports = [22]
           cidr_ipv4 = var.my_ip
         }
         grafana = {
-          ports     = [3000]
+          ports = [3000]
           cidr_ipv4 = var.my_ip
         }
-        llm_to_prometheus = {
-          ports        = [9090]
-          source_group = "alb-llm_sg"
+        prometheus = {
+          ports = [9090]
+          cidr_ipv4 = var.my_ip
         }
       }
     }
@@ -60,7 +60,7 @@ module "sg" {
     alb_sg = {
       ingress_rules = {
         alb_http = {
-          ports     = [80]
+          ports = [80]
           cidr_ipv4 = var.my_ip
         }
       }
@@ -69,7 +69,7 @@ module "sg" {
     "bastion-servers_sg" = {
       ingress_rules = {
         ssh_to_server = {
-          ports        = [22]
+          ports = [22]
           source_group = "bastion_sg"
         }
       }
@@ -78,8 +78,12 @@ module "sg" {
     "alb-llm_sg" = {
       ingress_rules = {
         alb_to_llm = {
-          ports        = [11434]
+          ports = [11434]
           source_group = "alb_sg"
+        }
+        bastion_to_pm_agents = {
+          ports = [9100]
+          source_group = "bastion_sg"
         }
       }
     }
@@ -87,11 +91,11 @@ module "sg" {
     rds_sg = {
       ingress_rules = {
         llm_to_db = {
-          ports        = [5432]
+          ports = [5432]
           source_group = "alb-llm_sg"
         }
         bastion_to_db = {
-          ports        = [5432]
+          ports = [5432]
           source_group = "bastion_sg"
         }
       }
@@ -110,7 +114,13 @@ module "bastion" {
   subnet_id = module.vpc.public_subnet_ids[0]
   security_group_ids = [module.sg.security_group_ids["bastion_sg"]]
   key_name = local.bastion_key_name
-  user_data = file("${path.root}/scripts/bastion.sh")
+  user_data = templatefile("${path.root}/scripts/bastion.sh", {
+    alert_rules = base64gzip(file("${path.root}/grafana/alert-rules.yaml"))
+    contact_points = filebase64("${path.root}/grafana/contact-points.yaml")
+    alb_4xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-4xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
+    alb_5xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-5xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
+    response_time_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/response-time.json", { alb_arn_suffix = module.alb.arn_suffix }))
+  })
   iam_instance_profile = module.monitoring_iam.instance_profile_name
 }
 
@@ -137,9 +147,7 @@ module "asg" {
     module.sg.security_group_ids["alb-llm_sg"]
   ]
   private_subnet_ids = module.vpc.private_servers_subnet_ids
-  user_data = base64encode(templatefile("${path.root}/scripts/ollama.sh", {
-    monitoring_ip = module.bastion.private_ip
-  }))
+  user_data = base64encode(file("${path.root}/scripts/ollama.sh"))
   target_group_arn = module.alb.target_group_arn
 }
 
@@ -160,6 +168,7 @@ module "monitoring_iam" {
   source = "./modules/monitoring"
 
   name_prefix = local.project
+  sns_topic_arn = module.monitoring_alerts.topic_arn
 }
 
 module "monitoring_alerts" {
