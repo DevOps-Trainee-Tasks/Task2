@@ -28,7 +28,8 @@ resource "aws_iam_role_policy" "cloudwatch_read" {
           "ec2:DescribeInstances",
           "ec2:DescribeTags",
           "ec2:DescribeRegions",
-          "tag:GetResources"
+          "tag:GetResources",
+          "logs:DescribeLogGroups"
         ]
         Resource = "*"
       },

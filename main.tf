@@ -10,6 +10,10 @@ provider "aws" {
   region = local.aws_region
 }
 
+data "aws_sns_topic" "monitoring_alerts" {
+  name = "${local.project}-monitoring-alerts"
+}
+
 module "vpc" {
   source = "./modules/vpc"
   nat_gateway_public_subnet_index = 0
@@ -115,8 +119,10 @@ module "bastion" {
   security_group_ids = [module.sg.security_group_ids["bastion_sg"]]
   key_name = local.bastion_key_name
   user_data = templatefile("${path.root}/scripts/bastion.sh", {
-    alert_rules = base64gzip(file("${path.root}/grafana/alert-rules.yaml"))
-    contact_points = filebase64("${path.root}/grafana/contact-points.yaml")
+    alert_rules = base64gzip(templatefile("${path.root}/grafana/alert-rules.yaml", { alb_arn_suffix = module.alb.arn_suffix }))
+    contact_points = base64encode(templatefile("${path.root}/grafana/contact-points.yaml", {
+      sns_topic_arn = data.aws_sns_topic.monitoring_alerts.arn
+    }))
     alb_4xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-4xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     alb_5xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-5xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     response_time_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/response-time.json", { alb_arn_suffix = module.alb.arn_suffix }))
@@ -168,12 +174,5 @@ module "monitoring_iam" {
   source = "./modules/monitoring"
 
   name_prefix = local.project
-  sns_topic_arn = module.monitoring_alerts.topic_arn
-}
-
-module "monitoring_alerts" {
-  source = "./modules/alerts"
-
-  name_prefix    = local.project
-  alert_email    = var.email
+  sns_topic_arn = data.aws_sns_topic.monitoring_alerts.arn
 }

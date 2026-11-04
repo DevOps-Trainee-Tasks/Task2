@@ -8,5 +8,5 @@ contactPoints:
           settings:
             sigv4:
                 region: us-east-1
-            topic_arn: arn:aws:sns:us-east-1:687078156188:task2-monitoring-alerts
+            topic_arn: ${sns_topic_arn}
           disableResolveMessage: false
