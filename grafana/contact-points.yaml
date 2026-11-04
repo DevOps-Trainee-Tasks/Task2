@@ -1,0 +1,12 @@
+apiVersion: 1
+contactPoints:
+    - orgId: 1
+      name: llm-email
+      receivers:
+        - uid: fg37zcdm30agwd
+          type: sns
+          settings:
+            sigv4:
+                region: us-east-1
+            topic_arn: arn:aws:sns:us-east-1:687078156188:task2-monitoring-alerts
+          disableResolveMessage: false
