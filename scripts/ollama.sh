@@ -36,4 +36,8 @@ systemctl daemon-reload
 systemctl enable --now node_exporter
 systemctl enable ollama
 systemctl restart ollama
+
+curl -fsS --retry 30 --retry-connrefused --retry-delay 2 \
+  http://127.0.0.1:11434/api/tags >/dev/null
+
 HOME=/root ollama pull qwen3:1.7b
