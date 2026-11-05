@@ -45,74 +45,40 @@ module "sg" {
 
   security_groups = {
     bastion_sg = {
-      ingress_rules = {
-        bastion_ssh = {
-          ports = [22]
-          cidr_ipv4 = var.my_ip
-        }
-        grafana = {
-          ports = [3000]
-          cidr_ipv4 = var.my_ip
-        }
-        prometheus = {
-          ports = [9090]
-          cidr_ipv4 = var.my_ip
-        }
-        alb_to_webui = {
-          ports = [8080]
-          source_group = "alb_sg"
-        }
-      }
+      ingress_ports_tcp = [22, 3000, 9090]
+      allowed_cidr_blocks = [var.my_ip]
+      allowed_security_groups = []
+    }
+
+    bastion_webui_sg = {
+      ingress_ports_tcp = [8080]
+      allowed_cidr_blocks = []
+      allowed_security_groups = ["alb_sg"]
     }
 
     alb_sg = {
-      ingress_rules = {
-        alb_http = {
-          ports = [80]
-          cidr_ipv4 = var.my_ip
-        }
-        webui = {
-          ports = [8080]
-          cidr_ipv4 = var.my_ip
-        }
-      }
+      ingress_ports_tcp = [80, 8080]
+      allowed_cidr_blocks = [var.my_ip]
+      allowed_security_groups = []
     }
 
     "bastion-servers_sg" = {
-      ingress_rules = {
-        ssh_to_server = {
-          ports = [22]
-          source_group = "bastion_sg"
-        }
-      }
+      ingress_ports_tcp = [22, 9100]
+      allowed_cidr_blocks = []
+      allowed_security_groups = ["bastion_sg"]
     }
 
     "alb-llm_sg" = {
-      ingress_rules = {
-        alb_to_llm = {
-          ports = [11434]
-          source_group = "alb_sg"
-        }
-        bastion_to_pm_agents = {
-          ports = [9100]
-          source_group = "bastion_sg"
-        }
-      }
+      ingress_ports_tcp = [11434]
+      allowed_cidr_blocks = []
+      allowed_security_groups = ["alb_sg"]
     }
 
     rds_sg = {
-      ingress_rules = {
-        llm_to_db = {
-          ports = [5432]
-          source_group = "alb-llm_sg"
-        }
-        bastion_to_db = {
-          ports = [5432]
-          source_group = "bastion_sg"
-        }
-      }
+      ingress_ports_tcp = [5432]
+      allowed_cidr_blocks = []
+      allowed_security_groups = ["alb-llm_sg", "bastion_sg"]
     }
-    
   }
 }
 
@@ -124,7 +90,10 @@ module "bastion" {
   ami_id = local.bastion_ami_id
   instance_type = local.bastion_instance_type
   subnet_id = module.vpc.public_subnet_ids[0]
-  security_group_ids = [module.sg.security_group_ids["bastion_sg"]]
+  security_group_ids = [
+    module.sg.security_group_ids["bastion_sg"],
+    module.sg.security_group_ids["bastion_webui_sg"]
+  ]
   key_name = local.bastion_key_name
   user_data = templatefile("${path.root}/scripts/bastion.sh", {
     alert_rules = base64gzip(templatefile("${path.root}/grafana/alert-rules.yaml", { alb_arn_suffix = module.alb.arn_suffix }))
