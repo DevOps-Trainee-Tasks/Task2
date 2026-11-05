@@ -57,13 +57,13 @@ module "sg" {
     }
 
     alb_sg = {
-      ingress_ports_tcp = [80, 8080]
+      ingress_ports_tcp = [80, 11434]
       allowed_cidr_blocks = [var.my_ip]
       allowed_security_groups = []
     }
 
     "bastion-servers_sg" = {
-      ingress_ports_tcp = [22, 9100]
+      ingress_ports_tcp = [22]
       allowed_cidr_blocks = []
       allowed_security_groups = ["bastion_sg"]
     }
@@ -74,11 +74,18 @@ module "sg" {
       allowed_security_groups = ["alb_sg"]
     }
 
+    llm_node_exporter_sg = {
+      ingress_ports_tcp = [9100]
+      allowed_cidr_blocks = []
+      allowed_security_groups = ["bastion_sg"]
+    }
+
     rds_sg = {
       ingress_ports_tcp = [5432]
       allowed_cidr_blocks = []
       allowed_security_groups = ["alb-llm_sg", "bastion_sg"]
     }
+
   }
 }
 
@@ -95,6 +102,7 @@ module "bastion" {
     module.sg.security_group_ids["bastion_webui_sg"]
   ]
   key_name = local.bastion_key_name
+  sns_topic_arn = data.aws_sns_topic.monitoring_alerts.arn
   user_data = templatefile("${path.root}/scripts/bastion.sh", {
     alert_rules = base64gzip(templatefile("${path.root}/grafana/alert-rules.yaml", { alb_arn_suffix = module.alb.arn_suffix }))
     contact_points = base64encode(templatefile("${path.root}/grafana/contact-points.yaml", {
@@ -104,9 +112,8 @@ module "bastion" {
     alb_5xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-5xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     response_time_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/response-time.json", { alb_arn_suffix = module.alb.arn_suffix }))
     webui_script = base64encode(file("${path.root}/scripts/open-webui.sh"))
-    ollama_url = "http://${module.alb.alb_dns}"
+    ollama_url = "http://${module.alb.alb_dns}:11434"
   })
-  iam_instance_profile = module.monitoring_iam.instance_profile_name
 }
 
 module "alb" {
@@ -129,7 +136,8 @@ module "asg" {
   key_name = local.bastion_key_name
   security_group_ids = [
     module.sg.security_group_ids["bastion-servers_sg"],
-    module.sg.security_group_ids["alb-llm_sg"]
+    module.sg.security_group_ids["alb-llm_sg"],
+    module.sg.security_group_ids["llm_node_exporter_sg"]
   ]
   private_subnet_ids = module.vpc.private_servers_subnet_ids
   user_data = base64encode(file("${path.root}/scripts/ollama.sh"))
@@ -149,20 +157,11 @@ module "rds" {
     allocated_storage = local.rds_allocated_storage
 }
 
-module "monitoring_iam" {
-  source = "./modules/monitoring"
-
-  name_prefix = local.project
-  sns_topic_arn = data.aws_sns_topic.monitoring_alerts.arn
-}
-
 module "webui" {
   source = "./modules/webui"
 
-  name_prefix           = local.project
-  vpc_id                = module.vpc.vpc_id
-  alb_arn               = module.alb.alb_arn
+  webui_target_group_arn = module.alb.webui_target_group_arn
   alb_security_group_id = module.sg.security_group_ids["alb_sg"]
-  bastion_instance_id   = module.bastion.instance_id
-  bastion_public_ip     = module.bastion.public_ip
+  bastion_instance_id = module.bastion.instance_id
+  bastion_public_ip = module.bastion.public_ip
 }

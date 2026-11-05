@@ -1,3 +1,53 @@
+resource "aws_iam_role" "monitoring" {
+  name = "${var.name_prefix}-monitoring-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "monitoring" {
+  name = "${var.name_prefix}-monitoring-policy"
+  role = aws_iam_role.monitoring.name
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:ListMetrics",
+          "cloudwatch:GetMetricData",
+          "ec2:DescribeInstances",
+          "ec2:DescribeTags",
+          "ec2:DescribeRegions"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sns:Publish",
+          "sns:GetTopicAttributes"
+        ]
+        Resource = var.sns_topic_arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "monitoring" {
+  name = "${var.name_prefix}-monitoring-profile"
+  role = aws_iam_role.monitoring.name
+}
+
 resource "aws_instance" "ec2" {
     ami = var.ami_id
     instance_type = var.instance_type
@@ -8,5 +58,5 @@ resource "aws_instance" "ec2" {
     tags = {
         Name = "${var.ec2_name}"
     }
-    iam_instance_profile = var.iam_instance_profile
+    iam_instance_profile = aws_iam_instance_profile.monitoring.name
 }

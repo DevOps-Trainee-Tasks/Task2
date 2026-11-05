@@ -1,12 +1,4 @@
-variable "name_prefix" {
-  type = string
-}
-
-variable "vpc_id" {
-  type = string
-}
-
-variable "alb_arn" {
+variable "webui_target_group_arn" {
   type = string
 }
 

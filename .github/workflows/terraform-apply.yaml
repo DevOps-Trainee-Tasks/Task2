@@ -22,7 +22,6 @@ jobs:
       TF_IN_AUTOMATION: "true"
       TF_INPUT: "false"
       TF_VAR_my_ip: ${{ secrets.SSH_CIDR }}
-      TF_VAR_email: ${{ secrets.ALERT_EMAIL }}
 
     steps:
       - name: Checkout

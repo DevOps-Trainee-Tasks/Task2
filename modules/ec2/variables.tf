@@ -30,7 +30,6 @@ variable "ec2_name" {
   type = string
 }
 
-variable "iam_instance_profile" {
-  type    = string
-  default = null
+variable "sns_topic_arn" {
+  type = string
 }
