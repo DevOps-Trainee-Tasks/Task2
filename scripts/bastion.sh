@@ -64,6 +64,25 @@ EOF
 
 dnf install -y grafana
 
+install -m 600 /dev/null /etc/grafana/smtp-password
+aws ssm get-parameter \
+  --region '${aws_region}' \
+  --name '${smtp_password_parameter_arn}' \
+  --with-decryption \
+  --query 'Parameter.Value' \
+  --output text > /etc/grafana/smtp-password
+chown grafana:grafana /etc/grafana/smtp-password
+
+cat > /etc/grafana/grafana.ini <<'EOF'
+[smtp]
+enabled = true
+host = smtp.gmail.com:587
+user = ${alert_email}
+password = $__file{/etc/grafana/smtp-password}
+from_address = ${alert_email}
+startTLS_policy = MandatoryStartTLS
+EOF
+
 #gt_to_pms
 mkdir -p /etc/grafana/provisioning/datasources
 

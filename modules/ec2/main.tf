@@ -25,6 +25,7 @@ resource "aws_iam_role_policy" "monitoring" {
         Action = [
           "cloudwatch:ListMetrics",
           "cloudwatch:GetMetricData",
+          "logs:DescribeLogGroups",
           "ec2:DescribeInstances",
           "ec2:DescribeTags",
           "ec2:DescribeRegions"
@@ -33,11 +34,8 @@ resource "aws_iam_role_policy" "monitoring" {
       },
       {
         Effect = "Allow"
-        Action = [
-          "sns:Publish",
-          "sns:GetTopicAttributes"
-        ]
-        Resource = var.sns_topic_arn
+        Action = "ssm:GetParameter"
+        Resource = var.smtp_password_parameter_arn
       }
     ]
   })

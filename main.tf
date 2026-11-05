@@ -10,9 +10,7 @@ provider "aws" {
   region = local.aws_region
 }
 
-data "aws_sns_topic" "monitoring_alerts" {
-  name = "${local.project}-monitoring-alerts"
-}
+data "aws_caller_identity" "current" {}
 
 module "vpc" {
   source = "./modules/vpc"
@@ -102,12 +100,15 @@ module "bastion" {
     module.sg.security_group_ids["bastion_webui_sg"]
   ]
   key_name = local.bastion_key_name
-  sns_topic_arn = data.aws_sns_topic.monitoring_alerts.arn
+  smtp_password_parameter_arn = local.smtp_password_parameter_arn
   user_data = templatefile("${path.root}/scripts/bastion.sh", {
     alert_rules = base64gzip(templatefile("${path.root}/grafana/alert-rules.yaml", { alb_arn_suffix = module.alb.arn_suffix }))
     contact_points = base64encode(templatefile("${path.root}/grafana/contact-points.yaml", {
-      sns_topic_arn = data.aws_sns_topic.monitoring_alerts.arn
+      alert_email = var.alert_email
     }))
+    alert_email = var.alert_email
+    smtp_password_parameter_arn = local.smtp_password_parameter_arn
+    aws_region = local.aws_region
     alb_4xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-4xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     alb_5xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-5xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     response_time_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/response-time.json", { alb_arn_suffix = module.alb.arn_suffix }))

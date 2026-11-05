@@ -1,6 +1,7 @@
 locals {
     aws_region = "us-east-1"
     project = "task2"
+    smtp_password_parameter_arn = "arn:aws:ssm:${local.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${local.project}/grafana/smtp-password"
     http_port = 80
     bastion_ami_id = "ami-07ad3ac74660c86c1"
     bastion_instance_type = "m7i-flex.large"

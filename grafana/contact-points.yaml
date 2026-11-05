@@ -4,9 +4,6 @@ contactPoints:
       name: llm-email
       receivers:
         - uid: fg37zcdm30agwd
-          type: sns
+          type: email
           settings:
-            sigv4:
-                region: us-east-1
-            topic_arn: ${sns_topic_arn}
-          disableResolveMessage: false
+            addresses: ${alert_email}

@@ -30,6 +30,6 @@ variable "ec2_name" {
   type = string
 }
 
-variable "sns_topic_arn" {
+variable "smtp_password_parameter_arn" {
   type = string
 }
