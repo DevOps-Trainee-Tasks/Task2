@@ -19,7 +19,6 @@ jobs:
       TF_INPUT: "false"
       TF_VAR_my_ip: ${{ secrets.SSH_CIDR }}
       TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
-      TF_VAR_ec2_key_pair_name: ${{ vars.EC2_KEY_PAIR_NAME }}
 
     steps:
       - name: Checkout
@@ -44,7 +43,4 @@ jobs:
         run: |
           terraform init
           terraform validate
-          terraform plan -out=tfplan
-          aws s3 cp tfplan \
-            s3://task1-tfstate-687078156188/task1/plans/pr-${{ github.event.pull_request.number }}/${{ github.event.pull_request.head.sha }}/tfplan \
-            --sse AES256
+          terraform plan

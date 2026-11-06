@@ -1,6 +1,5 @@
 resource "aws_lb" "alb" {
   name = "${var.name_prefix}-alb"
-  load_balancer_type = "application"
   subnets = var.public_subnet_ids
   security_groups = [var.security_groups_id]
   idle_timeout = 180
