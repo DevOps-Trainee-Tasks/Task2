@@ -43,19 +43,13 @@ module "sg" {
 
   security_groups = {
     bastion_sg = {
-      ingress_ports_tcp = [22, 3000, 9090]
+      ingress_ports_tcp = [22, 80, 3000, 9090]
       allowed_cidr_blocks = [var.my_ip]
       allowed_security_groups = []
     }
 
-    bastion_webui_sg = {
-      ingress_ports_tcp = [8080]
-      allowed_cidr_blocks = []
-      allowed_security_groups = ["alb_sg"]
-    }
-
     alb_sg = {
-      ingress_ports_tcp = [80, 11434]
+      ingress_ports_tcp = [11434]
       allowed_cidr_blocks = [var.my_ip]
       allowed_security_groups = []
     }
@@ -95,10 +89,7 @@ module "bastion" {
   ami_id = local.bastion_ami_id
   instance_type = local.bastion_instance_type
   subnet_id = module.vpc.public_subnet_ids[0]
-  security_group_ids = [
-    module.sg.security_group_ids["bastion_sg"],
-    module.sg.security_group_ids["bastion_webui_sg"]
-  ]
+  security_group_ids = [module.sg.security_group_ids["bastion_sg"]]
   key_name = local.bastion_key_name
   smtp_password_parameter_arn = local.smtp_password_parameter_arn
   user_data = templatefile("${path.root}/scripts/bastion.sh", {
@@ -124,7 +115,6 @@ module "alb" {
     vpc_id = module.vpc.vpc_id
     public_subnet_ids = module.vpc.public_subnet_ids
     security_groups_id = module.sg.security_group_ids["alb_sg"]
-    port_listener = local.http_port
     ollama_port = 11434
 }
 
@@ -161,8 +151,6 @@ module "rds" {
 module "webui" {
   source = "./modules/webui"
 
-  webui_target_group_arn = module.alb.webui_target_group_arn
   alb_security_group_id = module.sg.security_group_ids["alb_sg"]
-  bastion_instance_id = module.bastion.instance_id
   bastion_public_ip = module.bastion.public_ip
 }

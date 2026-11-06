@@ -16,27 +16,6 @@ resource "aws_lb_target_group" "lb_target_group" {
   }
 }
 
-resource "aws_lb_target_group" "webui" {
-  name = "${var.name_prefix}-webui"
-  port = 8080
-  protocol = "HTTP"
-  vpc_id = var.vpc_id
-
-  health_check {
-    path = "/health"
-  }
-}
-
-resource "aws_lb_listener" "lb_listener" {
-  load_balancer_arn = aws_lb.alb.arn
-  port = var.port_listener
-  protocol = "HTTP"
-  default_action {
-    type = "forward"
-    target_group_arn = aws_lb_target_group.webui.arn
-  }
-}
-
 resource "aws_lb_listener" "ollama" {
   load_balancer_arn = aws_lb.alb.arn
   port = var.ollama_port

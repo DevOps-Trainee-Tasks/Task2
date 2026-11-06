@@ -14,10 +14,6 @@ variable "security_groups_id" {
     type = string
 }
 
-variable "port_listener" {
-    type = number
-}
-
 variable "ollama_port" {
     type = number
 }

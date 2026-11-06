@@ -13,7 +13,7 @@ docker rm -f open-webui 2>/dev/null || true
 docker run -d \
   --name open-webui \
   --restart always \
-  -p 8080:8080 \
+  -p 80:8080 \
   -e OLLAMA_BASE_URL="$1" \
   -e WEBUI_SECRET_KEY="$(cat /etc/open-webui-secret)" \
   -v open-webui:/app/backend/data \

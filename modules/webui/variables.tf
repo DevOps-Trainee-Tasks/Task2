@@ -1,12 +1,4 @@
-variable "webui_target_group_arn" {
-  type = string
-}
-
 variable "alb_security_group_id" {
-  type = string
-}
-
-variable "bastion_instance_id" {
   type = string
 }
 
