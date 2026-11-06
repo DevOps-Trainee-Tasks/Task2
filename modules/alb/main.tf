@@ -3,6 +3,7 @@ resource "aws_lb" "alb" {
   load_balancer_type = "application"
   subnets = var.public_subnet_ids
   security_groups = [var.security_groups_id]
+  idle_timeout = 180
 }
 
 resource "aws_lb_target_group" "lb_target_group" {
