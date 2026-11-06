@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-dnf install -y tar gzip shadow-utils
+dnf install -y tar gzip shadow-utils zstd
 
 NODE_EXPORTER_VERSION="1.12.1"
 curl -fsSL "https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz" -o /tmp/node_exporter.tar.gz
@@ -23,7 +23,8 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
-curl -fsSL https://ollama.com/install.sh -o /tmp/install-ollama.sh
+curl -fsSL --connect-timeout 10 --retry 5 --retry-delay 5 \
+  https://ollama.com/install.sh -o /tmp/install-ollama.sh
 sh /tmp/install-ollama.sh
 
 mkdir -p /etc/systemd/system/ollama.service.d

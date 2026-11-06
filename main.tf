@@ -54,28 +54,22 @@ module "sg" {
       allowed_security_groups = []
     }
 
-    "bastion-servers_sg" = {
-      ingress_ports_tcp = [22]
+    llm_bastion_sg = {
+      ingress_ports_tcp = [22, 9100]
       allowed_cidr_blocks = []
       allowed_security_groups = ["bastion_sg"]
     }
 
-    "alb-llm_sg" = {
+    llm_alb_sg = {
       ingress_ports_tcp = [11434]
       allowed_cidr_blocks = []
       allowed_security_groups = ["alb_sg"]
     }
 
-    llm_node_exporter_sg = {
-      ingress_ports_tcp = [9100]
-      allowed_cidr_blocks = []
-      allowed_security_groups = ["bastion_sg"]
-    }
-
     rds_sg = {
       ingress_ports_tcp = [5432]
       allowed_cidr_blocks = []
-      allowed_security_groups = ["alb-llm_sg", "bastion_sg"]
+      allowed_security_groups = ["llm_alb_sg", "bastion_sg"]
     }
 
   }
@@ -126,9 +120,8 @@ module "asg" {
   instance_type = local.llm_instance_type
   key_name = local.bastion_key_name
   security_group_ids = [
-    module.sg.security_group_ids["bastion-servers_sg"],
-    module.sg.security_group_ids["alb-llm_sg"],
-    module.sg.security_group_ids["llm_node_exporter_sg"]
+    module.sg.security_group_ids["llm_bastion_sg"],
+    module.sg.security_group_ids["llm_alb_sg"]
   ]
   private_subnet_ids = module.vpc.private_servers_subnet_ids
   user_data = base64encode(file("${path.root}/scripts/ollama.sh"))
