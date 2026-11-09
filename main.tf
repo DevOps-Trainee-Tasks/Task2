@@ -86,7 +86,7 @@ module "bastion" {
   security_group_ids = [module.sg.security_group_ids["bastion_sg"]]
   key_name = local.bastion_key_name
   smtp_password_parameter_arn = local.smtp_password_parameter_arn
-  user_data = templatefile("${path.root}/scripts/bastion.sh", {
+  user_data = templatefile("${path.root}/scripts/bastion-user-data.sh", {
     alert_rules = base64gzip(templatefile("${path.root}/grafana/alert-rules.yaml", { alb_arn_suffix = module.alb.arn_suffix }))
     contact_points = base64encode(templatefile("${path.root}/grafana/contact-points.yaml", {
       alert_email = var.alert_email
@@ -127,7 +127,6 @@ module "asg" {
     module.sg.security_group_ids["llm_alb_sg"]
   ]
   private_subnet_ids = module.vpc.private_servers_subnet_ids
-  user_data = base64encode(file("${path.root}/scripts/ollama.sh"))
   target_group_arn = module.alb.target_group_arn
 }
 
