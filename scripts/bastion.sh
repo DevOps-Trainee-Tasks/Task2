@@ -127,6 +127,9 @@ EOF
 echo '${alb_4xx_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/alb-4xx.json
 echo '${alb_5xx_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/alb-5xx.json
 echo '${response_time_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/response-time.json
+echo '${cpu_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/cpu.json
+echo '${memory_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/memory.json
+echo '${root_disk_dashboard}' | base64 -d | gzip -d > /var/lib/grafana/dashboards/root-disk.json
 
 systemctl daemon-reload
 systemctl enable --now prometheus grafana-server

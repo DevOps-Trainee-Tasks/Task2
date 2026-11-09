@@ -52,7 +52,7 @@ resource "aws_instance" "ec2" {
     subnet_id = var.subnet_id
     vpc_security_group_ids = var.security_group_ids
     key_name = var.key_name
-    user_data = var.user_data
+    user_data_base64 = base64gzip(var.user_data)
     tags = {
         Name = "${var.ec2_name}"
     }

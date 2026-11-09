@@ -97,6 +97,9 @@ module "bastion" {
     alb_4xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-4xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     alb_5xx_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/alb-5xx.json", { alb_arn_suffix = module.alb.arn_suffix }))
     response_time_dashboard = base64gzip(templatefile("${path.root}/grafana/dashboards/response-time.json", { alb_arn_suffix = module.alb.arn_suffix }))
+    cpu_dashboard = base64gzip(file("${path.root}/grafana/dashboards/cpu.json"))
+    memory_dashboard = base64gzip(file("${path.root}/grafana/dashboards/memory.json"))
+    root_disk_dashboard = base64gzip(file("${path.root}/grafana/dashboards/root-disk.json"))
     webui_script = base64encode(file("${path.root}/scripts/open-webui.sh"))
     ollama_url = "http://${module.alb.alb_dns}:11434"
   })
