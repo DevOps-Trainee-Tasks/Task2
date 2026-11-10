@@ -14,7 +14,7 @@ docker run -d \
   --name open-webui \
   --restart always \
   -p 80:8080 \
-  -e OLLAMA_BASE_URL="$1" \
+  -e OLLAMA_BASE_URL="${ollama_url}" \
   -e WEBUI_SECRET_KEY="$(cat /etc/open-webui-secret)" \
   -v open-webui:/app/backend/data \
   ghcr.io/open-webui/open-webui:slim
