@@ -1,2 +1,5 @@
 my_ip = "ip/32"
 alert_email = "example@gmail.com"
+webui_db_username = "example_username"
+webui_db_password = "password"
+webui_secret_key  = "password"

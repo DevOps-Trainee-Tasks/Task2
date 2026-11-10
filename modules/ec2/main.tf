@@ -36,6 +36,11 @@ resource "aws_iam_role_policy" "monitoring" {
         Effect = "Allow"
         Action = "ssm:GetParameter"
         Resource = var.smtp_password_parameter_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = "secretsmanager:GetSecretValue"
+        Resource = [var.webui_secret_arn, var.rds_master_secret_arn]
       }
     ]
   })

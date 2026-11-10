@@ -87,8 +87,14 @@ module "bastion" {
   key_name = local.bastion_key_name
   smtp_password_parameter_arn = local.smtp_password_parameter_arn
   user_data = templatefile("${path.root}/scripts/open-webui.sh", {
-    ollama_url = "http://${module.alb.alb_dns}:11434"
+  ollama_url = "http://${module.alb.alb_dns}:11434"
+  db_host = module.rds.address
+  db_name = local.rds_db_name
+  webui_secret_arn = module.webui_credentials.arn
+  rds_master_secret_arn = module.rds.master_secret_arn
   })
+  webui_secret_arn = module.webui_credentials.arn
+  rds_master_secret_arn = module.rds.master_secret_arn
 }
 
 module "alb" {
@@ -134,4 +140,13 @@ module "webui" {
 
   alb_security_group_id = module.sg.security_group_ids["alb_sg"]
   bastion_public_ip = module.bastion.public_ip
+}
+
+module "webui_credentials" {
+  source = "./modules/webui-creds"
+
+  name_prefix = local.project
+  db_username = var.webui_db_username
+  db_password = var.webui_db_password
+  webui_secret_key = var.webui_secret_key
 }
